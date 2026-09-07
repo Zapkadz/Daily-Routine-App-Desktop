@@ -30,6 +30,7 @@ export type CreateTaskInput = {
 };
 
 export type Category = {
+  is_active?: number;
   id: string;
   name: string;
   color: string;

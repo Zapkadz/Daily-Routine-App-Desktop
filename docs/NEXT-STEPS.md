@@ -2,6 +2,35 @@
 
 Follow these tasks in order. The first unchecked item is the recommended next action.
 
+## Plan tomorrow handoff — 2026-09-08
+
+- [x] Today entry, private route, shared task/schedule planning variants and default tomorrow forms.
+- [x] Midnight refresh with pinned open-form dates, future-only new dates, and save feedback for plans outside tomorrow.
+- [x] 45 tests pass, including saving/retrying forms, midnight transition, leap/year/month boundaries and SQLite reopen without increasing today's streak.
+- [x] Browser inspection: navigation, both default dates, desktop and 760px dark layout. Browser preview cannot access Tauri SQLite; populated flows covered by component/repository tests.
+- [x] Standalone Windows release rebuilt with `tauri build --no-bundle`; Desktop shortcut uses this executable.
+- [ ] Native acceptance: Today → Plan tomorrow → create task/routine → restart → confirm saved plan → check it in Today when the date arrives.
+
+## Frontend redesign handoff
+
+### Settings follow-up — 2026-09-07
+
+- [x] Settings: category add/rename/hide/show, priority display names, routine icon add/edit/hide/show.
+- [x] Saved routine icon/color rendered in Schedule and live form preview.
+- [x] 35 tests pass, frontend build/typecheck and strict premium audit pass; standalone release rebuilt successfully.
+- [ ] Native acceptance: add category/icon, create task/routine using them, close/reopen app and confirm. Browser preview has no Tauri SQL bridge; automated reopen tests use real SQLite with an adapter.
+
+### Date validation follow-up — 2026-09-07
+
+- [x] Prevent new tasks and routines from selecting or submitting a past date; preserve unchanged historical dates during edits.
+- [x] Add component coverage for the minimum date and typed past-date rejection.
+
+- [x] Frontend build, 27 tests and premium strict audit pass.
+- [x] Browser review: light/dark, 760px layout, Add Task validation, Escape/focus restoration and Monthly layout.
+- [x] User closed Daily Routine after the running executable initially prevented replacement.
+- [x] Rebuilt using `node_modules/.bin/tauri.cmd build --no-bundle`; existing Desktop shortcut now targets the updated release executable.
+- [ ] Verify populated task/routine screens and save flows in native app. Browser preview does not include Tauri SQL.
+
 ## Immediate verification after 2026-09-07 fixes
 
 - [x] Reproduce and fix ambiguous task JOIN ordering; add real SQLite repository reopen tests.
@@ -90,7 +119,7 @@ Follow these tasks in order. The first unchecked item is the recommended next ac
 
 - [ ] Add JSON export.
 - [ ] Add JSON import validation.
-- [ ] Add settings page.
+- [x] Add settings page.
 - [ ] Add light/dark mode if included in the release scope.
 - [ ] Test app restart and data persistence.
 - [ ] Test offline operation.

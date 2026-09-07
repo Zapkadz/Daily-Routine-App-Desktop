@@ -1,13 +1,11 @@
 import {
   CalendarCheck2,
-  ChevronLeft,
-  ChevronRight,
   Flame,
   Plus,
-  Sparkles,
-  Target,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { Link } from 'react-router-dom';
+import { useLocalToday } from '../hooks/useLocalToday';
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../components/Button";
 import { ProgressRing } from "../components/ProgressRing";
@@ -21,11 +19,10 @@ import { useStreakStore } from "../stores/streakStore";
 import { useTaskStore } from "../stores/taskStore";
 import type { Routine, RoutineStatus } from "../types/routine";
 import type { Task } from "../types/task";
-import { localDateKey } from "../utils/date";
 
 export function TodayPage() {
-  const today = new Date();
-  const todayKey = localDateKey(today);
+  const todayKey = useLocalToday();
+  const today = parseISO(todayKey);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>();
   const [showRoutineModal, setShowRoutineModal] = useState(false);
@@ -89,14 +86,10 @@ export function TodayPage() {
       <header className="page-header">
         <div>
           <p className="eyebrow">{format(today, "EEEE, MMMM d")}</p>
-          <h1>Make today meaningful.</h1>
-          <p className="header-copy">A clear plan, a steady rhythm, and enough room to breathe.</p>
+          <h1>Your day, in order.</h1>
+          <p className="header-copy">Plan your tasks. Make time for your daily routine.</p>
         </div>
-        <div className="header-actions">
-          <button className="icon-button" aria-label="Previous day"><ChevronLeft size={18} /></button>
-          <button className="today-button">Today</button>
-          <button className="icon-button" aria-label="Next day"><ChevronRight size={18} /></button>
-        </div>
+        <div className="day-header-actions"><span className="header-date">{format(today, "MMM d, yyyy")}</span><Link className="button button-secondary" to="/plan/tomorrow">Plan tomorrow</Link></div>
       </header>
 
       <div className="metric-grid">
@@ -121,11 +114,6 @@ export function TodayPage() {
             </div>
             <ProgressRing value={todayProgress} />
           </div>
-        </article>
-        <article className="metric-card quote-card">
-          <div className="metric-icon subtle"><Sparkles size={20} /></div>
-          <span>Daily intention</span>
-          <strong className="intention">Focus on what moves the day forward.</strong>
         </article>
       </div>
 
@@ -185,14 +173,6 @@ export function TodayPage() {
         </article>
       </div>
 
-      <article className="focus-card">
-        <div className="focus-icon"><Target size={21} /></div>
-        <div>
-          <span>Today's focus</span>
-          <strong>Finish the planner foundation with care.</strong>
-        </div>
-        <button className="text-button">Edit intention</button>
-      </article>
       {showTaskModal && <TaskModal defaultDate={todayKey} task={editingTask} onClose={() => setShowTaskModal(false)} />}
       {showRoutineModal && <RoutineModal defaultDate={todayKey} routine={editingRoutine} onClose={() => setShowRoutineModal(false)} />}
     </section>

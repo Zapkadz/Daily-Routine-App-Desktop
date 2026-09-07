@@ -113,3 +113,24 @@ completed required tasks and routines / total required tasks and routines * 100
 - Prefer archive over destructive deletion in the UI.
 - Permanent delete requires confirmation.
 - Deleting a task or routine occurrence must trigger analytics and streak recalculation.
+
+## Customization
+
+Customization rules (2026-09-07): Settings manages category names and reversible visibility. Existing task references are preserved. Priority keys and order (none/low/medium/high) remain fixed; display labels can be renamed. Built-in routine icons can be renamed/hidden; custom emoji/symbol icons can be added/edited/hidden, with at least one enabled. Hidden icons remain on existing routines. The five routine colors and schedule/status/streak rules remain fixed. Customization persists in SQLite via migration 5. RoutineForm previews icon/color and RoutineSchedule renders them.
+
+## Date entry rules (2026-09-07)
+
+- New tasks and routines may only be created for today or a future local calendar date.
+- Task dates and routine start dates use the Windows local date and expose today as the minimum date in the picker.
+- The form also validates typed values, so a past date cannot be submitted by bypassing the picker.
+- Existing records with historical dates remain editable without forcing a date migration. Keeping their original date is allowed for history; changing them to a different past date is not.
+
+## Plan tomorrow (approved 2026-09-08)
+
+- Today links to `/plan/tomorrow`; no sidebar item is added. Back to Today returns to the live current day.
+- Tomorrow uses the Windows local calendar date, advances with calendar arithmetic, and refreshes across midnight/focus. Open forms retain their explicit date and refresh their minimum valid date.
+- Task and routine creation reuse existing repositories and forms, defaulting to tomorrow. Save acknowledges persistence; changing the date/schedule away from tomorrow explains where to find the saved item.
+- Existing repeating routines appear when their schedule includes tomorrow. Weekly-target routines appear as Flexible, separate from scheduled count and first scheduled activity.
+- Planning-mode task rows and routine tables offer no completion controls. No routine completion log is created by planning. Streaks remain anchored to the actual current date.
+- Routine edits affect the repeating definition; the planning page and edit dialog state this explicitly. One-off events use tasks with a time.
+- Tasks planned and routines scheduled are counts for tomorrow. First activity is the earliest assigned task time or required routine time. Missing/unavailable data is not reported as zero.

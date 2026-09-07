@@ -1,10 +1,45 @@
 # Progress Log
 
+## 2026-09-08 — Plan tomorrow
+
+- Implemented approved `/plan/tomorrow` flow with header link on Today and no new sidebar entry.
+- Reuses TaskRow, RoutineSchedule and shared modals. Planning mode removes completion controls; dates default to tomorrow and saved records use the existing SQLite persistence layer.
+- Displays scheduled counts and first timed activity; distinguishes flexible routines and explains repeating-routine edits.
+- Added local-date refresh for midnight/sleep/focus; open forms preserve explicit dates and recheck past dates at save.
+- Verification: 45 tests passed (14 files). Includes form failure/retry, saved plan filtering, midnight transition, date boundaries and real SQLite reopen with unchanged current-day streaks. Browser verified navigation/default dates and 760px dark layout; native populated acceptance remains manual.
+- Standalone Windows release built successfully with `tauri build --no-bundle`; strict premium audit has no findings. DESIGN lint has zero errors and three existing unused-token warnings.
+
+## 2026-09-07 — Settings and routine appearance
+
+- Added migration 5 for persistent customization and category visibility, preserving task/routine data.
+- Added Settings category management, editable priority labels, and built-in/custom routine icon management; no destructive deletion.
+- Fixed missing Schedule icons/colors and added immediate RoutineForm preview.
+- Kept priority storage keys, fixed palette, calendar and streak rules unchanged.
+- Verified: 33 tests (SQLite reopen plus component interactions), frontend build/typecheck, strict premium audit. Standalone Tauri release built successfully. Browser Settings error/retry state confirmed; native populated CRUD still needs manual acceptance.
+
+## 2026-09-07 — Future-only creation dates
+
+- Task and Routine forms now set the Windows local date as `min` and reject typed past dates during creation.
+- Historical records retain their original date during edits; moving to another past date is rejected.
+- Added component coverage; the suite now passes 35 tests.
+
 Last updated: 2026-09-07  
 Current phase: Core feature set complete / Packaging and release QA next  
 Overall status: Tasks, routines, calendars, streaks, and analytics are live
 
 ## Completed
+
+### 2026-09-07 — Frontend redesign
+
+- Standalone release build completed after user closed the running app; Desktop shortcut uses the updated executable. Native populated-data UI QA remains open.
+
+- Applied Frontend Design Premium: added DESIGN.md, UX-CONTRACT.md, premium-ui.json and premium-audit.json.
+- Added shared planner.css theme: white/green-grey surfaces, compact typography, readable schedule/calendar labels, restrained elevation, light/dark and narrow layouts.
+- Today prioritizes tasks and schedule; removed decorative intention placeholders and actionless day controls.
+- Forms now use explicit frontend validation; shared native HTML dialog handles Escape, background isolation and focus return. Added app-owned delete confirmation.
+- No changes to src/database, src/services, src/stores, src/types or src-tauri source/configuration.
+- Verification: build passed; 27 tests passed; premium strict static audit has zero findings. DESIGN.md lint had zero errors (unused token warnings remain).
+- Browser checks: Today light/dark, narrow 760px layout, task dialog appearance, empty-title validation/focus, Escape trigger focus restoration, Monthly sibling layout. Browser preview has no Tauri bridge, so native persistence and populated-data visual coverage are not established by those checks.
 
 ### 2026-09-07 — Reload failure and persistence audit
 

@@ -1,6 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { Button } from "../../components/Button";
+import { RoutineIcon } from '../../components/RoutineIcon';
+import { usePreferencesStore } from '../../stores/preferencesStore';
 import type { CreateRoutineInput, Routine, RoutineFrequencyType } from "../../types/routine";
+import { isPastLocalDate, localDateKey } from '../../utils/date';
+import { useLocalToday } from '../../hooks/useLocalToday';
 
 type RoutineFormProps = {
   defaultDate: string;
@@ -29,10 +33,12 @@ function initialRule(routine?: Routine) {
 }
 
 export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete }: RoutineFormProps) {
+  const iconOptions = usePreferencesStore(state => state.value.icons);
+  const minimumDate = useLocalToday();
   const rule = initialRule(routine);
   const [name, setName] = useState(routine?.name ?? "");
   const [description, setDescription] = useState(routine?.description ?? "");
-  const [icon, setIcon] = useState(routine?.icon ?? "sparkles");
+  const [icon, setIcon] = useState(routine?.icon ?? iconOptions.find(item => item.enabled)?.id ?? "sparkles");
   const [color, setColor] = useState(routine?.color ?? "#4f8a68");
   const [frequencyType, setFrequencyType] = useState<RoutineFrequencyType>(routine?.frequencyType ?? "daily");
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>(rule.weekdays ?? [1, 2, 3, 4, 5]);
@@ -41,6 +47,7 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
   const [startDate, setStartDate] = useState(routine?.startDate ?? defaultDate);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dateIsPast = isPastLocalDate(startDate, minimumDate) && startDate !== routine?.startDate;
 
   function toggleWeekday(day: number) {
     setSelectedWeekdays((current) => current.includes(day) ? current.filter((value) => value !== day) : [...current, day]);
@@ -48,8 +55,20 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSaving) return;
     if (!name.trim()) {
       setError("Routine name is required.");
+      event.currentTarget.querySelector<HTMLInputElement>('input')?.focus();
+      return;
+    }
+    if (!startDate) {
+      setError("Choose a start date.");
+      event.currentTarget.querySelector<HTMLInputElement>('input[type="date"]')?.focus();
+      return;
+    }
+    if (isPastLocalDate(startDate, localDateKey()) && startDate !== routine?.startDate) {
+      setError("Choose today or a future start date.");
+      event.currentTarget.querySelector<HTMLInputElement>('input[type="date"]')?.focus();
       return;
     }
     if (frequencyType === "weekdays" && selectedWeekdays.length === 0) {
@@ -77,24 +96,19 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
   }
 
   return (
-    <form className="task-form" onSubmit={handleSubmit}>
+    <form className="task-form" noValidate aria-busy={isSaving} onSubmit={handleSubmit}>
       <label className="field field-full">
         <span>Event</span>
-        <input autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Get up, Study Japanese, Lunch" />
+        <input autoFocus aria-invalid={!!error && !name.trim()} aria-describedby={error ? "routine-form-error" : undefined} value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Get up, Study Japanese, Lunch" />
       </label>
       <label className="field field-full">
         <span>Notes</span>
-        <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Why does this routine matter?" rows={3} />
+        <textarea className="resize-none" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Why does this routine matter?" rows={3} />
       </label>
       <label className="field">
         <span>Icon</span>
         <select value={icon} onChange={(event) => setIcon(event.target.value)}>
-          <option value="sparkles">Sparkles</option>
-          <option value="book">Book</option>
-          <option value="activity">Activity</option>
-          <option value="droplets">Water</option>
-          <option value="moon">Moon</option>
-          <option value="heart">Health</option>
+          {iconOptions.filter(item => item.enabled || item.id === icon).map(item => <option key={item.id} value={item.id}>{item.label}{!item.enabled ? ' (hidden)' : ''}</option>)}
         </select>
       </label>
       <label className="field">
@@ -115,6 +129,7 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
           <option value="weekly_target">Times per week</option>
         </select>
       </label>
+      <div className="routine-preview field-full"><RoutineIcon icon={icon} color={color} /><span>{name.trim() || 'Your routine'}<small>Icon and color preview</small></span></div>
       {frequencyType === "weekdays" && (
         <div className="field field-full">
           <span>Days</span>
@@ -135,13 +150,14 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
       )}
       <label className="field">
         <span>Start date</span>
-        <input type="date" required value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+        <input type="date" required min={minimumDate} value={startDate} aria-invalid={!!error && dateIsPast} aria-describedby={error ? "routine-form-error" : undefined} onChange={(event) => setStartDate(event.target.value)} />
+        <small className="field-hint">New routines can start from today onward.</small>
       </label>
       <label className="field">
         <span>Time</span>
         <input type="time" value={reminderTime} onChange={(event) => setReminderTime(event.target.value)} />
       </label>
-      {error && <p className="form-error" role="alert">{error}</p>}
+      {error && <p id="routine-form-error" className="form-error" role="alert">{error}</p>}
       <div className="form-actions field-full">
         {onDelete && <Button type="button" className="danger-button" variant="ghost" onClick={() => void onDelete()}>Delete permanently</Button>}
         <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>

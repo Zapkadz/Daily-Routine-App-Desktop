@@ -1,13 +1,13 @@
 import { Archive, Check, Circle, Pencil } from "lucide-react";
 import type { Task } from "../../types/task";
+import { usePreferencesStore } from '../../stores/preferencesStore';
 
 type TaskRowProps = {
   task: Task;
-  onToggle: (task: Task) => void;
   onEdit: (task: Task) => void;
   onArchive: (task: Task) => void;
   showDate?: boolean;
-};
+} & ({ mode: 'planning'; onToggle?: never } | { mode?: 'daily'; onToggle: (task: Task) => void });
 
 function formatTaskMeta(task: Task, showDate: boolean) {
   const values = [];
@@ -18,18 +18,19 @@ function formatTaskMeta(task: Task, showDate: boolean) {
   return values.length > 0 ? values.join(" · ") : "Any time";
 }
 
-export function TaskRow({ task, onToggle, onEdit, onArchive, showDate = false }: TaskRowProps) {
+export function TaskRow({ task, onToggle, onEdit, onArchive, showDate = false, mode = 'daily' }: TaskRowProps) {
+  const priorityLabels = usePreferencesStore(state => state.value.priorityLabels);
   const isCompleted = task.status === "completed";
   return (
     <div className={`task-item${isCompleted ? " completed" : ""}`}>
-      <button className="check-button" type="button" aria-label={`Toggle ${task.title}`} onClick={() => onToggle(task)}>
+      {mode === 'planning' ? <span className="planned-label">{isCompleted ? 'Completed' : 'Planned'}</span> : <button className="check-button" type="button" aria-label={`Toggle ${task.title}`} onClick={() => onToggle?.(task)}>
         {isCompleted ? <Check size={15} /> : <Circle size={17} />}
-      </button>
+      </button>}
       <div className="item-copy">
         <strong>{task.title}</strong>
         <span>{formatTaskMeta(task, showDate)}</span>
       </div>
-      {task.priority !== "none" && <span className={`priority priority-${task.priority}`}>{task.priority}</span>}
+      {task.priority !== "none" && <span className={`priority priority-${task.priority}`}>{priorityLabels[task.priority]}</span>}
       <div className="task-actions">
         <button className="more-button" type="button" aria-label={`Edit ${task.title}`} onClick={() => onEdit(task)}><Pencil size={15} /></button>
         <button className="more-button danger" type="button" aria-label={`Archive ${task.title}`} onClick={() => onArchive(task)}><Archive size={15} /></button>

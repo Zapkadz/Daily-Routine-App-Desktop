@@ -9,6 +9,9 @@ vi.mock('../src/database/client', () => ({ getDatabase: async () => adapter.curr
 import { taskRepository } from '../src/database/repositories/taskRepository';
 import { routineRepository } from '../src/database/repositories/routineRepository';
 import { analyticsRepository } from '../src/database/repositories/analyticsRepository';
+import { categoryRepository } from '../src/database/repositories/categoryRepository';
+import { preferencesRepository } from '../src/database/repositories/preferencesRepository';
+import { calculateStreaks } from '../src/services/streakService';
 
 let db, directory, path;
 function connect() {
@@ -28,6 +31,55 @@ beforeEach(() => {
   }
 });
 afterEach(() => { db.close(); rmSync(directory, { recursive: true, force: true }); });
+
+it('reloads tomorrow plans without counting tomorrow in today streaks', async () => {
+  const before = calculateStreaks(await analyticsRepository.loadStreakData('2026-09-08'));
+  const task = await taskRepository.create({ title: 'Tomorrow', scheduledDate: '2026-09-09', priority: 'none' });
+  const routine = await routineRepository.create({ name: 'Tomorrow routine', startDate: '2026-09-09', color: '#4f8a68', frequencyType: 'daily', weekdays: [], weeklyTarget: 1, reminderTime: '06:00' });
+  db.close(); connect();
+  expect((await taskRepository.findById(task.id)).scheduledDate).toBe('2026-09-09');
+  expect((await routineRepository.findById(routine.id)).startDate).toBe('2026-09-09');
+  expect(calculateStreaks(await analyticsRepository.loadStreakData('2026-09-08'))).toEqual(before);
+  const next = calculateStreaks(await analyticsRepository.loadStreakData('2026-09-09'));
+  expect(next.planningCurrent).toBe(1);
+  expect(next.completionCurrent).toBe(0);
+  expect(await routineRepository.listLogsForDate('2026-09-09')).toEqual([]);
+});
+
+it('persists custom labels, icons and category visibility without losing task links', async () => {
+  const prefs = await preferencesRepository.load();
+  prefs.priorityLabels.high = 'Urgent';
+  prefs.icons.push({ id: 'guitar', label: 'Guitar', symbol: '🎸', enabled: true });
+  await preferencesRepository.save(prefs);
+  await categoryRepository.save(null, 'Music');
+  const category = (await categoryRepository.list()).find(item => item.name === 'Music');
+  const task = await taskRepository.create({ title: 'Practice', scheduledDate: '2026-09-07', priority: 'high', categoryId: category.id });
+  await categoryRepository.save(category.id, 'Practice music');
+  await categoryRepository.setActive(category.id, false);
+  db.close(); connect();
+  expect(await preferencesRepository.load()).toEqual(prefs);
+  expect((await taskRepository.findById(task.id)).categoryName).toBe('Practice music');
+  expect((await taskRepository.findById(task.id)).priority).toBe('high');
+  expect((await categoryRepository.list()).find(item => item.id === category.id).is_active).toBe(0);
+  await categoryRepository.setActive(category.id, true);
+  expect((await categoryRepository.list()).find(item => item.id === category.id).is_active).toBe(1);
+});
+
+it('rejects invalid settings and duplicate categories without overwriting saved data', async () => {
+  const prefs = await preferencesRepository.load();
+  await preferencesRepository.save(prefs);
+  await expect(preferencesRepository.save({ ...prefs, icons: [] })).rejects.toThrow();
+  await expect(categoryRepository.save(null, 'work')).rejects.toThrow('already exists');
+  expect(await preferencesRepository.load()).toEqual(prefs);
+});
+
+it('keeps routine icon and color through restart', async () => {
+  const routine = await routineRepository.create({ name: 'Read', icon: 'book', color: '#7b6f9e', frequencyType: 'daily', weekdays: [], weeklyTarget: 1, startDate: '2026-09-07' });
+  db.close(); connect();
+  const loaded = (await routineRepository.listActive()).find(item => item.id === routine.id);
+  expect(loaded.icon).toBe('book');
+  expect(loaded.color).toBe('#7b6f9e');
+});
 
 it('reloads two tasks after closing the database, including category joins', async () => {
   const first = await taskRepository.create({ title: 'Study', scheduledDate: '2026-09-07', priority: 'none', categoryId: 'builtin-work' });

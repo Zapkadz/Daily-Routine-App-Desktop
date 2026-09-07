@@ -26,6 +26,12 @@ pub fn run() {
             sql: include_str!("../migrations/0004_routine_start_date.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 5,
+            description: "add_preferences",
+            sql: include_str!("../migrations/0005_preferences.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

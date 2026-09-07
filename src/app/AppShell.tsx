@@ -40,6 +40,8 @@ export function AppShell() {
           {navigation.map(({ label, to, icon: Icon }) => (
             <NavLink
               key={to}
+              aria-label={label}
+              title={label}
               to={to}
               className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
             >
@@ -50,11 +52,11 @@ export function AppShell() {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="theme-toggle" type="button" onClick={() => setDarkMode((value) => !value)}>
+          <button className="theme-toggle" aria-label={darkMode ? "Light mode" : "Dark mode"} type="button" onClick={() => setDarkMode((value) => !value)}>
             {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             <span>{darkMode ? "Light mode" : "Dark mode"}</span>
           </button>
-          <NavLink to="/settings" className="nav-item">
+          <NavLink to="/settings" className="nav-item" aria-label="Settings" title="Settings">
             <Settings size={18} strokeWidth={1.8} />
             <span>Settings</span>
           </NavLink>
