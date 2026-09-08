@@ -46,6 +46,7 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>(rule.weekdays ?? [1, 2, 3, 4, 5]);
   const [weeklyTarget, setWeeklyTarget] = useState(rule.target ?? 3);
   const [reminderTime, setReminderTime] = useState(routine?.reminderTime ?? "");
+  const [reminderEnabled, setReminderEnabled] = useState(routine?.reminderEnabled ?? false);
   const [startDate, setStartDate] = useState(defaultDate);
   const [editScope, setEditScope] = useState<RoutineEditScope>('date');
   const [customDates, setCustomDates] = useState<string[]>(() => rule.dates?.filter(date => date >= defaultDate) ?? [defaultDate]);
@@ -98,6 +99,7 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
         weekdays: selectedWeekdays,
         weeklyTarget,
         reminderTime,
+        reminderEnabled: !!reminderTime && reminderEnabled,
         startDate,
         customDates,
         editScope,
@@ -184,6 +186,7 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
         <span>Time</span>
         <input type="time" value={reminderTime} onChange={(event) => setReminderTime(event.target.value)} />
       </label>
+      <div className="field field-full"><label className="reminder-check"><input type="checkbox" checked={!!reminderTime && reminderEnabled} disabled={!reminderTime || isSaving} onChange={event => setReminderEnabled(event.target.checked)} /><span>Remind me at this time</span></label><small className="field-hint">Choose a time and enable Desktop reminders in Settings. Weekly targets need a specific planned date.</small></div>
       {error && <p id="routine-form-error" className="form-error" role="alert">{error}</p>}
       <div className="form-actions field-full">
         {onRemoveDate && <Button type="button" variant="ghost" disabled={isSaving} onClick={async () => {

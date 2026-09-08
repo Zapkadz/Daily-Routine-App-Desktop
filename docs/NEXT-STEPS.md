@@ -2,6 +2,17 @@
 
 Follow these tasks in order. The first unchecked item is the recommended next action.
 
+## Desktop reminders handoff — 2026-09-08
+
+- [x] Native scheduler using the existing SQL pool; migration 7; date-scoped opt-in; Settings, tray and optional autostart.
+- [x] Frontend/repository and native SQLite schedule tests pass; release NSIS installer built and installed for current user. Desktop shortcut targets the installed executable.
+- [x] Native app starts in tray, SQL upgrades to v7 and integrity_check returns ok. Explicit installed Windows toast smoke test passed (OS accepted dispatch; banner visibility not observed).
+- [x] Browser fixture: light 1280px / dark 760x850, settings save/failure recovery and keyboard checkbox. Native date/time picker clearing via browser automation was inconclusive; component input-event tests cover the time requirement.
+- [ ] Native user acceptance: routine due while hidden, reopen without duplicate, explicit Quit, Windows login autostart and sleep/resume. Do not mark these visually verified from unit tests.
+- [x] Entire background process tree measured once: 7 processes, ~409 MiB summed working set (includes shared pages), ~191 MiB private committed memory. Main process alone was ~38 MiB; do not quote that as total RAM. Visible-vs-hidden/long-session benchmarking remains open.
+- [ ] Next schema change must use migration 8. Do not modify shipped migrations 1–7.
+- [ ] Later: snooze/actions and Quiet hours if requested; Google Calendar remains separate.
+
 ## Flexible daily routines handoff — 2026-09-08
 
 - [x] Custom dates plus preserved Every day / Selected weekdays / Times per week.
@@ -12,7 +23,7 @@ Follow these tasks in order. The first unchecked item is the recommended next ac
 - [x] Browser fixture: dated history, dark/light, 760px, failure recovery, menu and Escape focus checks. Fixture is not native database coverage.
 - [ ] Native acceptance: open existing Desktop shortcut; choose Plan tomorrow; add Custom dates activity; edit its time with This date only; close/reopen and confirm today/history did not change.
 - [ ] If native data differs from expected, identify the effective active database before recovery or imports. The inspected Roaming database was v4 and empty; its timestamped backup does not prove the populated database was backed up.
-- [ ] Future enhancements remain separate: Google Calendar integration, export/import, installer packaging and general unsaved-draft guards. Do not overwrite migration 6 after it has shipped; add migration 7 for future schema changes.
+- [ ] Future enhancements remain separate: Google Calendar integration, export/import and general unsaved-draft guards. Migration 7 and installer packaging were added with reminders; future schema changes must use migration 8.
 
 ## Plan tomorrow handoff — 2026-09-08
 

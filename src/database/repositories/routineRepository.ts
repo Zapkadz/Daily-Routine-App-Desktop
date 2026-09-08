@@ -13,6 +13,7 @@ type RoutineRow = {
   frequency_type: Routine["frequencyType"];
   frequency_rule: string;
   reminder_time: string | null;
+  reminder_enabled: number;
   is_active: number;
   start_date: string | null;
   created_at: string;
@@ -39,6 +40,7 @@ function mapRoutine(row: RoutineRow): Routine {
     frequencyType: row.schedule_type ?? row.frequency_type,
     frequencyRule: row.frequency_rule,
     reminderTime: row.reminder_time,
+    reminderEnabled: row.reminder_enabled === 1,
     isActive: row.is_active === 1,
     startDate: row.start_date ?? row.created_at.slice(0, 10),
     createdAt: row.created_at,
@@ -59,7 +61,7 @@ function mapRoutineLog(row: RoutineLogRow): RoutineLog {
 
 const routineColumns = `
   id, name, description, icon, color, frequency_type, frequency_rule,
-  reminder_time, is_active, start_date, created_at, archived_at, schedule_type
+  reminder_time, reminder_enabled, is_active, start_date, created_at, archived_at, schedule_type
 `;
 
 async function withHistory(rows: RoutineRow[]): Promise<Routine[]> {
@@ -125,8 +127,8 @@ export const routineRepository = {
     await database.execute(
       `INSERT INTO routines (
         id, name, description, icon, color, frequency_type, frequency_rule,
-        reminder_time, is_active, start_date, created_at, archived_at, schedule_type
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, NULL, ?)`,
+        reminder_time, reminder_enabled, is_active, start_date, created_at, archived_at, schedule_type
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, NULL, ?)`,
       [
         id,
         input.name.trim(),
@@ -136,6 +138,7 @@ export const routineRepository = {
         input.frequencyType === 'custom_dates' ? 'weekdays' : input.frequencyType,
         serializeRoutineRule(input),
         input.reminderTime || null,
+        input.reminderEnabled && input.reminderTime ? 1 : 0,
         input.startDate,
         createdAt,
         input.frequencyType === 'custom_dates' ? 'custom_dates' : null,
@@ -150,12 +153,14 @@ export const routineRepository = {
     const date = input.effectiveDate ?? localDateKey();
     requireCurrentDate(date);
     if (!input.name.trim()) throw new Error('Enter an event name.');
+    if (input.reminderTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.reminderTime)) throw new Error('Choose a valid time.');
     const current = await routineRepository.findById(routine.id);
     if (!current || current.archivedAt) throw new Error('This routine is no longer active. Reload your schedule.');
     const database = await getDatabase();
     const base = routineOnDate(current, date);
     const snapshot = { ...routineSnapshot(base), name: input.name.trim(), description: input.description?.trim() || null,
-      icon: input.icon || null, color: input.color, reminderTime: input.reminderTime || null };
+      icon: input.icon || null, color: input.color, reminderTime: input.reminderTime || null,
+      reminderEnabled: !!input.reminderTime && (input.reminderEnabled ?? base.reminderEnabled ?? false) };
     if ((input.editScope ?? 'date') === 'date') {
       snapshot.startDate = snapshot.startDate > date ? date : snapshot.startDate;
       await database.execute(`INSERT INTO routine_occurrences(routine_id,date,snapshot,removed) VALUES (?,?,?,0)

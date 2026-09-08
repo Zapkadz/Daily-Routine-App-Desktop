@@ -171,3 +171,7 @@ a.button { text-decoration: none; }
 .settings-option:last-child { border-bottom: 0; }
 .settings-actions { display: flex; gap: 8px; flex-shrink: 0; }
 @media (max-width: 800px) { .settings-panel { padding: 16px; } .settings-panel .section-heading { flex-wrap: wrap; gap: 12px; } .settings-option { flex-wrap: wrap; } }
+/* Notification choices share Settings geometry and the existing field palette. */
+.reminder-check { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.reminder-check input[type="checkbox"], .settings-option input[type="checkbox"] { width: 18px; height: 18px; flex: 0 0 18px; accent-color: var(--green); cursor: pointer; }
+.reminder-check input:disabled, .settings-option input:disabled { cursor: not-allowed; opacity: .5; }

@@ -170,3 +170,10 @@ src/
 ## Future integration boundary
 
 Google Calendar should be implemented as a separate integration module in Phase 2. It must not leak Google-specific IDs or OAuth assumptions into the core Task or Routine entities.
+# Desktop reminder engine (2026-09-08)
+
+`src-tauri/src/reminders.rs` owns native scheduling and Windows toast dispatch. SQL plugin preloads/migrates the existing database; the engine clones that same pool from DbInstances, avoiding an independently guessed file path. Migration 7 adds global settings, durable routine/date dispatch claims and per-routine opt-in; revision/occurrence JSON carries dated opt-in. Frontend acknowledged SQL writes wake the engine through `refresh_reminders`; wake failure does not invalidate an already committed save.
+
+Queue resolution is native and covered by SQLite integration tests alongside the frontend resolver. Only the current local day's undelivered pending events are read. Waiting uses Tokio Notify plus a deadline capped at 30 seconds for local clock/resume checks. SQL reloads on changes, deadlines and a five-minute fallback. Single-instance plugin precedes SQL. Autostart plugin registers only after user action. Tray retains the webview to preserve drafts; it does not promise minimal WebView RAM. Precise memory use still needs process-tree measurement.
+
+Windows notifications use winrt-notification directly so dispatch errors are observable. Installer supplies the app identity `com.dailyroutine.desktop`. No notification action buttons, snooze, wake-from-sleep, cloud push or Task Scheduler integration. OS-accepted dispatch does not establish a visible banner. Claims favor avoiding duplicate notifications over replay after crashes.

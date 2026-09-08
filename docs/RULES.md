@@ -36,7 +36,7 @@ This file is the source of truth for behavior. If code and this file disagree, u
 
 - Daily Routine is a daily activity schedule (Time / Event / Status), such as getting up, studying, lunch, and dinner.
 - Display events chronologically in Today and Daily Routine. Existing activities without a time appear last as "Any time".
-- The existing `reminderTime` / `reminder_time` field stores the event's time in this version; setting it does not imply notification delivery.
+- `reminderTime` / `reminder_time` stores the event time. Notification delivery additionally requires the dated `reminderEnabled` flag and global Desktop reminders setting.
 - Each activity keeps its own daily completion log, even when two activities have the same name at different times.
 
 - A routine is a reusable definition; a `RoutineLog` records its status for one date.
@@ -56,7 +56,18 @@ This file is the source of truth for behavior. If code and this file disagree, u
 - `exempted` means the date is excluded from the routine's required completion calculation.
 - Archiving a routine stops future occurrences but preserves historical logs.
 
-## Planning Streak
+## Desktop reminders (approved 2026-09-08)
+
+- Global reminders and per-routine reminders default off; existing activities are not silently opted in. Sound and close-to-tray default on; Windows autostart is opt-in.
+- Resolve the current local date's latest revision and explicit occurrence before selecting a reminder. Date-only and future-series edits also scope the reminder flag. A weekly target needs an explicit planned date.
+- Announce only active, timed, opted-in, scheduled, pending routines. Removed, archived, completed, skipped and exempted activities are excluded. No todo notifications in this release.
+- Wake near the next deadline; refresh on database writes, date/timezone/clock changes, and every five minutes as a recovery fallback. Rust samples the clock at most every 30 seconds without querying SQL each tick.
+- Catch up only within five minutes of the scheduled local time, including restart/resume. Never wake a sleeping or powered-off PC. Windows controls banners, volume and Do not disturb.
+- A durable routine/date claim precedes dispatch, preventing repeated attempts after restart, clock rollback or time edits. There is no exact-once OS delivery guarantee: a crash between claim and dispatch can miss that reminder. Failed/uncertain attempts are not automatically replayed.
+- Closing hides the window when background mode is enabled, retaining in-progress forms. The tray exposes Open Daily Routine and Quit Daily Routine. Quit stops reminders. Only one app instance runs.
+- Autostart is controlled separately using the current executable and `--background`. Turning off close-to-tray opens a normal window at login. Use an installed build for Windows app identity.
+
+## Planning Streak calculation
 
 A date qualifies for Planning Streak when both conditions are true:
 

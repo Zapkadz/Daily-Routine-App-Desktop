@@ -256,3 +256,14 @@ None.
 - App routing uses `HashRouter` to remain reliable inside the desktop WebView.
 - UI assets and fonts must work offline.
 - The next implementation milestone is Weekly and Monthly Planner views.
+# Desktop reminders — 2026-09-08
+
+Implemented native Rust scheduler, durable duplicate suppression, migration 7, date-scoped reminder checkbox, Settings opt-in/sound/background/autostart/test controls, single-instance tray app and SQL preload. Existing data defaults to notifications off. Frontend/repository and 3 native SQLite/logic tests pass; strict Premium audit zero findings. NSIS release built and installed at `C:/Users/giap1/AppData/Local/Daily Routine/daily-routine-desktop.exe`; Desktop shortcut updated by installer. Native background startup and schema v7 integrity verified; explicit Windows notification smoke test passed. Browser synthetic fixture verifies acknowledged saves, failed autostart retaining prior value, light/dark and narrow layout; it is not native due-time/end-to-end evidence. See NEXT-STEPS for remaining manual acceptance and measured memory.
+
+Backup: `C:/Users/giap1/AppData/Roaming/com.dailyroutine.desktop/daily-routine.pre-reminders-1788862071482.db`. Before upgrade this inspected DB was still v4 with zero tasks/routines, so it does not establish a backup of the populated data in earlier screenshots. Scheduler shares the SQL plugin pool and never chooses a separate DB. No real routines or notification settings were changed for native smoke testing.
+
+### Native notification presentation — 2026-09-08
+
+Approved native-toast polish: activity name is the title, `HH:mm · Time to begin` is the secondary line, and the bundled offline app logo uses appLogoOverride. Test notification uses explicit preview copy. Includes the prior long-duration and Reminder sound change, while respecting the sound toggle. Windows continues to own toast layout/placement and Do not disturb. Three native logic/SQLite tests and explicit OS toast dispatch test pass; frontend build passes. Before this update a SQLite snapshot containing 4 routines was saved at `daily-routine.before-toast-style-1788864416609.db` beside the database. No schema or planning-data change is required.
+
+NSIS update installed successfully after user quit the tray app. Installed logo exists; installed executable matches release bytes except the expected three-byte Tauri bundle marker (`UNK` → `NSS`). Hashes of all rows in tasks, routines, logs, revisions, occurrences, preferences, categories and reminder settings match before/after installation. Windows accepted the styled preview toast; visible appearance remains OS-owned and was not captured by native UI automation.

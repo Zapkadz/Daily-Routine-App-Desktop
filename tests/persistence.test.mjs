@@ -75,6 +75,19 @@ it('rejects invalid settings and duplicate categories without overwriting saved 
   expect(await preferencesRepository.load()).toEqual(prefs);
 });
 
+it('persists reminder opt-in independently for dated and future edits', async () => {
+  const input = { name: 'Read', color: '#4f8a68', frequencyType: 'daily', weekdays: [], weeklyTarget: 1, startDate: '2026-09-07', reminderTime: '08:00', reminderEnabled: true };
+  const routine = await routineRepository.create(input);
+  await routineRepository.update(routine, { ...input, effectiveDate: '2026-09-08', editScope: 'date', reminderTime: '10:00', reminderEnabled: false });
+  db.close(); connect();
+  const loaded = await routineRepository.findById(routine.id);
+  expect(routineOnDate(loaded, '2026-09-07').reminderEnabled).toBe(true);
+  expect(routineOnDate(loaded, '2026-09-08').reminderEnabled).toBe(false);
+  expect(routineOnDate(loaded, '2026-09-09').reminderEnabled).toBe(true);
+  await routineRepository.update(loaded, { ...input, effectiveDate: '2026-09-09', editScope: 'future', reminderEnabled: false });
+  expect(routineOnDate(await routineRepository.findById(routine.id), '2026-09-10').reminderEnabled).toBe(false);
+});
+
 it('keeps routine icon and color through restart', async () => {
   const routine = await routineRepository.create({ name: 'Read', icon: 'book', color: '#7b6f9e', frequencyType: 'daily', weekdays: [], weeklyTarget: 1, startDate: '2026-09-07' });
   db.close(); connect();
@@ -208,7 +221,7 @@ it('upgrades a populated v5 database without losing routines or completion logs'
   for (const file of migrations.slice(0, 5)) db.exec(readFileSync(join('src-tauri/migrations', file), 'utf8'));
   db.prepare("INSERT INTO routines(id,name,color,frequency_type,frequency_rule,is_active,start_date,created_at) VALUES('legacy','Lunch','#4f8a68','daily','{}',1,'2026-09-01','2026-09-01T01:00:00Z')").run();
   db.prepare("INSERT INTO routine_logs(id,routine_id,date,status) VALUES('log','legacy','2026-09-02','completed')").run();
-  db.exec(readFileSync('src-tauri/migrations/0006_routine_occurrences.sql', 'utf8'));
+  for (const file of migrations.slice(5)) db.exec(readFileSync(join('src-tauri/migrations', file), 'utf8'));
   db.close(); connect();
   const routine = await routineRepository.findById('legacy');
   expect(routineOnDate(routine, '2026-09-02').name).toBe('Lunch');

@@ -7,6 +7,7 @@ import { useCategoryStore } from '../stores/categoryStore';
 import { usePreferencesStore } from '../stores/preferencesStore';
 import { useTaskStore } from '../stores/taskStore';
 import type { Category } from '../types/task';
+import { ReminderSettings } from '../features/routines/ReminderSettings';
 
 type Editor = { title: string; name: string; symbol?: string; save: (name: string, symbol: string) => Promise<void> };
 
@@ -85,6 +86,7 @@ export function SettingsPage() {
     <div className="settings-feedback" role="status">{loading ? 'Loading settings…' : status}</div>
     {(loadError || error) && <div className="data-error" role="alert">{loadError ? `Unable to load settings. ${loadError}` : error}{loadError && <Button variant="secondary" onClick={() => void load()}>Retry</Button>}</div>}
     {ready && <div className="settings-sections" aria-busy={busy}>
+      <ReminderSettings />
       <section className="settings-panel"><div className="section-heading"><div><h2>Categories</h2><p>Group your tasks. Hidden categories stay on existing tasks.</p></div><Button variant="secondary" disabled={busy} onClick={() => editCategory()}>Add category</Button></div>
         <div className="settings-options">{categories.length === 0 && <p>No categories yet. Add your first category.</p>}{categories.map(category => <div className="settings-option" key={category.id}><div><strong>{category.name}</strong><small>{category.is_active === 0 ? 'Hidden from new tasks' : 'Available in task forms'}</small></div><div className="settings-actions"><Button variant="ghost" disabled={busy} onClick={() => editCategory(category)}>Edit</Button><Button variant="secondary" disabled={busy} onClick={() => void run(async () => { await categoryRepository.setActive(category.id, category.is_active === 0); await refreshCategories(); })}>{category.is_active === 0 ? 'Show' : 'Hide'}</Button></div></div>)}</div>
       </section>

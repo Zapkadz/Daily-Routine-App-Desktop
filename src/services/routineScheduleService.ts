@@ -60,8 +60,8 @@ export function serializeRoutineRule(input: Pick<import("../types/routine").Crea
 }
 
 export function routineSnapshot(routine: Routine): RoutineSnapshot {
-  const { name, description, icon, color, frequencyType, frequencyRule, reminderTime, startDate } = routine;
-  return { name, description, icon, color, frequencyType, frequencyRule, reminderTime, startDate };
+  const { name, description, icon, color, frequencyType, frequencyRule, reminderTime, reminderEnabled, startDate } = routine;
+  return { name, description, icon, color, frequencyType, frequencyRule, reminderTime, reminderEnabled, startDate };
 }
 
 // Resolve the historical definition first, then an explicit single-day choice.

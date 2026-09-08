@@ -1,6 +1,6 @@
 export type RoutineFrequencyType = "daily" | "weekdays" | "weekly_target" | "custom_dates";
 export type RoutineEditScope = 'date' | 'future';
-export type RoutineSnapshot = Pick<Routine, 'name' | 'description' | 'icon' | 'color' | 'frequencyType' | 'frequencyRule' | 'reminderTime' | 'startDate'>;
+export type RoutineSnapshot = Pick<Routine, 'name' | 'description' | 'icon' | 'color' | 'frequencyType' | 'frequencyRule' | 'reminderTime' | 'reminderEnabled' | 'startDate'>;
 export type RoutineRevision = { date: string; snapshot: RoutineSnapshot };
 export type RoutineOccurrence = { date: string; snapshot: RoutineSnapshot; removed: boolean };
 export type RoutineStatus = "pending" | "completed" | "skipped" | "exempted";
@@ -14,6 +14,7 @@ export type Routine = {
   frequencyType: RoutineFrequencyType;
   frequencyRule: string;
   reminderTime: string | null;
+  reminderEnabled?: boolean;
   isActive: boolean;
   startDate: string;
   createdAt: string;
@@ -42,6 +43,7 @@ export type CreateRoutineInput = {
   weekdays: number[];
   weeklyTarget: number;
   reminderTime?: string;
+  reminderEnabled?: boolean;
   startDate: string;
   customDates?: string[];
   editScope?: RoutineEditScope;
