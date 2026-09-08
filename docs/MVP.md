@@ -34,7 +34,9 @@ Create a calm, minimalist desktop planner that combines daily todos, daily routi
 
 - Create, edit, archive, and delete routines.
 - Set routine name, description, icon, color, schedule, and reminder time.
-- Support every day, selected weekdays, and a target number of days per week.
+- Support every day, selected weekdays, a target number of days per week, and Custom dates.
+- Reuse activities and override individual dates; explicitly choose this date only or this and future dates when editing.
+- Preserve historical schedule definitions and view Last 7 days by day (default) or by routine.
 - Record a daily routine log.
 - Mark a routine completed, skipped, or exempted.
 - Show routine history and streaks.
@@ -107,4 +109,3 @@ Create a calm, minimalist desktop planner that combines daily todos, daily routi
 - Data survives app restart.
 - JSON export and import work.
 - The application can run offline on Windows.
-

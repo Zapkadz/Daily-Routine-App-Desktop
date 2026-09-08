@@ -1,5 +1,5 @@
 import { eachDayOfInterval, format, parseISO } from "date-fns";
-import { isRoutineActiveOnDate, isRoutineRequiredOnDate } from "./routineScheduleService";
+import { isRoutineActiveOnDate, isRoutineRequiredOnDate, routineOnDate } from "./routineScheduleService";
 import type { DailyStreakState, StreakData, StreakSummary } from "../types/analytics";
 
 function currentStreak(days: DailyStreakState[], field: "qualifiesForPlanning" | "qualifiesForCompletion") {
@@ -28,6 +28,8 @@ export function calculateStreaks(data: StreakData): StreakSummary {
   const candidateDates = [
     ...data.tasks.map((task) => task.scheduledDate),
     ...data.routines.map((routine) => routine.startDate),
+    ...data.routines.flatMap(routine => (routine.revisions ?? []).filter(item => item.date !== '0001-01-01').map(item => item.date)),
+    ...data.routines.flatMap(routine => (routine.occurrences ?? []).filter(item => !item.removed).map(item => item.date)),
     ...data.routineLogs.map((log) => log.date),
   ].filter((date) => date <= data.today);
 
@@ -46,8 +48,9 @@ export function calculateStreaks(data: StreakData): StreakSummary {
     const tasks = allTasks.filter((task) => task.status !== "cancelled");
     const requiredRoutines = data.routines.filter((routine) => isRoutineRequiredOnDate(routine, date));
     const flexibleLogs = data.routineLogs.filter((log) => {
-      const routine = routineMap.get(log.routineId);
-      return log.date === date && routine?.frequencyType === "weekly_target" && isRoutineActiveOnDate(routine, date);
+      const base = routineMap.get(log.routineId);
+      const routine = base && routineOnDate(base, date);
+      return log.date === date && routine?.frequencyType === "weekly_target" && !isRoutineRequiredOnDate(routine, date) && isRoutineActiveOnDate(routine, date);
     });
 
     const routineStatuses = [

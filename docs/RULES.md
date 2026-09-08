@@ -45,6 +45,7 @@ This file is the source of truth for behavior. If code and this file disagree, u
   - Every day.
   - Selected weekdays.
   - Target number of days per week.
+  - Custom dates (including a single date).
 - `daily` routines are required on every calendar date from their start date.
 - `weekdays` routines use ISO weekday numbers where Monday is 1 and Sunday is 7.
 - `weekly_target` routines are flexible goals: they are available every day but are not automatically required on a specific date.
@@ -123,7 +124,7 @@ Customization rules (2026-09-07): Settings manages category names and reversible
 - New tasks and routines may only be created for today or a future local calendar date.
 - Task dates and routine start dates use the Windows local date and expose today as the minimum date in the picker.
 - The form also validates typed values, so a past date cannot be submitted by bypassing the picker.
-- Existing records with historical dates remain editable without forcing a date migration. Keeping their original date is allowed for history; changing them to a different past date is not.
+- Existing tasks with historical dates remain editable without forcing a date migration. Routine schedule/name/time edits are today/future only; historical routine schedules are read-only.
 
 ## Plan tomorrow (approved 2026-09-08)
 
@@ -132,5 +133,18 @@ Customization rules (2026-09-07): Settings manages category names and reversible
 - Task and routine creation reuse existing repositories and forms, defaulting to tomorrow. Save acknowledges persistence; changing the date/schedule away from tomorrow explains where to find the saved item.
 - Existing repeating routines appear when their schedule includes tomorrow. Weekly-target routines appear as Flexible, separate from scheduled count and first scheduled activity.
 - Planning-mode task rows and routine tables offer no completion controls. No routine completion log is created by planning. Streaks remain anchored to the actual current date.
-- Routine edits affect the repeating definition; the planning page and edit dialog state this explicitly. One-off events use tasks with a time.
+- Routine edits default to this date only. The user may explicitly replace the schedule from this date onward. One-off activities can use Custom dates; todos remain independent outcomes.
 - Tasks planned and routines scheduled are counts for tomorrow. First activity is the earliest assigned task time or required routine time. Missing/unavailable data is not reported as zero.
+
+## Flexible daily schedules (approved 2026-09-08)
+
+- A routine combines an optional repeating rhythm with explicitly dated adjustments. All four schedule modes remain available; Custom dates is not a weekly target or an automatically recurring habit.
+- Custom dates are required only on the dates chosen. A reusable activity with no occurrence on a date does not count toward that day's planning/completion metrics.
+- Use an existing activity schedules the same routine ID on the chosen today/tomorrow date, with its own name, notes, icon, color and time. It creates no todo or completion log. One routine ID has at most one occurrence per date; distinct activities may share names.
+- This date only saves an explicit occurrence override. Other dates and the repeating schedule do not change.
+- This and future dates atomically replaces series revisions on/after the effective date, including any override on that effective date. Later explicit single-date adjustments remain authoritative. The dialog states this scope.
+- Remove from this date is reversible through Use an existing activity / Add back. It excludes that date's activity from required counts, preserves logs and other dates, and is distinct from archiving the whole activity.
+- Archive requires confirmation, hides the active definition and stops dates after its local archive date. History on/before the archive date remains visible. Permanent delete still requires explicit confirmation and removes all associated history.
+- Last 7 days defaults to By day: actual dated name/time/status in chronological order. By routine is an optional comparison matrix; off days are not presented as missed activities. Archived routines remain in history.
+- Custom dates and explicitly scheduled weekly-target activities count once as required, including in analytics and both streaks. Future plans do not affect today. Exempted/Skipped rules are unchanged.
+- Migration 6 preserves IDs, existing logs and the latest legacy definition as a historical baseline. It cannot reconstruct names/times/schedules that older versions already overwrote. New edits preserve history from this upgrade onward.

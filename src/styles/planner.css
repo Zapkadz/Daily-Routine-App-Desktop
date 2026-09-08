@@ -143,6 +143,24 @@ a.button { text-decoration: none; }
 .planning-feedback { min-height: 24px; color: var(--green); margin-top: 16px; }
 .tomorrow-page .section-heading { flex-wrap: wrap; gap: 12px; }
 .routine-preview small, .settings-option small { display: block; color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+.routine-library { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
+.routine-library summary { cursor: pointer; color: var(--green); font-weight: 600; }
+.routine-library summary:hover { text-decoration: underline; }
+.routine-library-list { max-height: 300px; overflow-y: auto; scrollbar-gutter: stable; }
+.routine-library-list > button { width: 100%; padding: 12px 0; text-align: left; border-bottom: 1px solid var(--border); }
+.routine-library small { display: block; margin-top: 4px; color: var(--text-muted); font-size: 12px; }
+.history-view-switch, .custom-date-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.routine-history-section .section-heading { flex-wrap: wrap; gap: 12px; }
+.history-day-picker { display: grid; grid-template-columns: repeat(7, minmax(40px, 1fr)); gap: 8px; overflow-x: auto; }
+.history-day-picker button { display: grid; gap: 6px; padding: 12px 4px; border: 1px solid var(--border); border-radius: 7px; color: var(--text-muted); background: var(--surface); cursor: pointer; }
+.history-day-picker button:hover { background: var(--green-soft); color: var(--text); }
+.history-day-picker button[aria-pressed="true"] { background: var(--green); color: var(--surface); border-color: var(--green); }
+.history-day-picker strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+.history-table-scroll, .history-matrix-scroll { max-height: 430px; overflow: auto; scrollbar-gutter: stable; }
+.history-matrix-scroll .history-grid { min-width: 510px; }
+.history-event { display: flex; align-items: center; gap: 12px; overflow-wrap: anywhere; }
+.history-status { text-transform: capitalize; white-space: nowrap; }
+.form-actions { flex-wrap: wrap; }
 .settings-sections { max-width: 960px; display: grid; gap: 24px; }
 .settings-panel { padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
 .settings-panel p { color: var(--text-muted); line-height: 1.6; }

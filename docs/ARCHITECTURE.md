@@ -1,5 +1,17 @@
 # Technical Architecture
 
+## Dated routine schedules — migration 6
+
+`routines` remains the identity/legacy definition table; its foreign keys and existing CHECK constraints are preserved. New `schedule_type = custom_dates` distinguishes the new mode while legacy `frequency_type` stores `weekdays` for those rows. Consumers must use the repository mapper, not raw frequency_type.
+
+`routine_revisions(routine_id,effective_date,snapshot)` stores effective series definitions. Existing and newly inserted routines get a baseline at 0001-01-01, with their actual startDate inside the JSON snapshot. INSERT/UPDATE triggers atomically discard superseded later revisions and the override on the effective date.
+
+`routine_occurrences(routine_id,date,snapshot,removed)` stores explicit date overrides and reversible removals. Snapshot fields: name, description, icon, color, frequencyType, frequencyRule, reminderTime, startDate. Unique routine/date prevents duplicate scheduling. Later explicit overrides take precedence over revisions. Logs remain separately keyed by routine/date.
+
+`routineOnDate` and `routinesOnDate` are the shared read model. Never display base routine name/time for a dated screen or calculate inclusion from raw frequency fields. Required/available/active predicates resolve the relevant date internally. The store exposes active `routines` and historical `allRoutines`; history/analytics use the latter. Routine repository creation and schedule mutations validate local today/future dates.
+
+Migration 6 is additive and runs through Tauri's normal migration mechanism. Tests apply it to both empty and populated v5 databases, check foreign keys and reopen persistence. Historical values already overwritten by pre-v6 code cannot be recovered; the migration preserves the best available baseline.
+
 ## Recommended stack
 
 - Desktop shell: Tauri.

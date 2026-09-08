@@ -4,8 +4,11 @@ import type { CreateRoutineInput, Routine, RoutineLog, RoutineStatus } from "../
 
 type RoutineState = {
   routines: Routine[];
+  allRoutines: Routine[];
   logsByDate: Record<string, RoutineLog[]>;
   historyLogs: RoutineLog[];
+  historyLoading: boolean;
+  historyError: string | null;
   isLoading: boolean;
   isInitialized: boolean;
   error: string | null;
@@ -17,6 +20,7 @@ type RoutineState = {
   archiveRoutine: (routine: Routine) => Promise<void>;
   deleteRoutine: (routine: Routine) => Promise<void>;
   setStatus: (routine: Routine, date: string, status: RoutineStatus) => Promise<void>;
+  removeDate: (routine: Routine, date: string, removed?: boolean) => Promise<void>;
 };
 
 function message(error: unknown) {
@@ -28,10 +32,14 @@ function sortRoutines(routines: Routine[]) {
   return [...routines].sort((left, right) => (left.reminderTime ?? "23:59").localeCompare(right.reminderTime ?? "23:59"));
 }
 
+let historyRequest = 0;
 export const useRoutineStore = create<RoutineState>((set, get) => ({
   routines: [],
+  allRoutines: [],
   logsByDate: {},
   historyLogs: [],
+  historyLoading: false,
+  historyError: null,
   isLoading: false,
   isInitialized: false,
   error: null,
@@ -40,8 +48,8 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
     if (get().isLoading) return;
     set({ isLoading: true, error: null });
     try {
-      const routines = await routineRepository.listActive();
-      set({ routines, isLoading: false, isInitialized: true });
+      const allRoutines = await routineRepository.listAll();
+      set({ allRoutines, routines: allRoutines.filter(routine => routine.isActive && !routine.archivedAt), isLoading: false, isInitialized: true });
     } catch (error) {
       set({ isLoading: false, isInitialized: true, error: message(error) });
     }
@@ -57,18 +65,20 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
   },
 
   loadHistory: async (startDate, endDate) => {
+    const request = ++historyRequest;
+    set({ historyLoading: true, historyError: null });
     try {
       const historyLogs = await routineRepository.listLogsBetween(startDate, endDate);
-      set({ historyLogs });
+      if (request === historyRequest) set({ historyLogs, historyLoading: false });
     } catch (error) {
-      set({ error: message(error) });
+      if (request === historyRequest) set({ historyError: message(error), historyLoading: false });
     }
   },
 
   createRoutine: async (input) => {
     try {
       const routine = await routineRepository.create(input);
-      set((state) => ({ routines: sortRoutines([...state.routines, routine]), error: null }));
+      set((state) => ({ routines: sortRoutines([...state.routines, routine]), allRoutines: [...state.allRoutines, routine], error: null }));
       return routine;
     } catch (error) {
       const errorText = message(error);
@@ -80,7 +90,7 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
   updateRoutine: async (routine, input) => {
     try {
       const updated = await routineRepository.update(routine, input);
-      set((state) => ({ routines: sortRoutines(state.routines.map((item) => item.id === updated.id ? updated : item)), error: null }));
+      set((state) => ({ routines: sortRoutines(state.routines.map((item) => item.id === updated.id ? updated : item)), allRoutines: state.allRoutines.map(item => item.id === updated.id ? updated : item), error: null }));
       return updated;
     } catch (error) {
       const errorText = message(error);
@@ -92,16 +102,18 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
   archiveRoutine: async (routine) => {
     try {
       await routineRepository.archive(routine);
-      set((state) => ({ routines: state.routines.filter((item) => item.id !== routine.id), error: null }));
+      const archived = await routineRepository.findById(routine.id);
+      set(state => ({ routines: state.routines.filter(item => item.id !== routine.id), allRoutines: state.allRoutines.map(item => item.id === routine.id && archived ? archived : item), error: null }));
     } catch (error) {
       set({ error: message(error) });
+      throw new Error(message(error));
     }
   },
 
   deleteRoutine: async (routine) => {
     try {
       await routineRepository.deletePermanently(routine);
-      set((state) => ({ routines: state.routines.filter((item) => item.id !== routine.id), error: null }));
+      set((state) => ({ routines: state.routines.filter((item) => item.id !== routine.id), allRoutines: state.allRoutines.filter(item => item.id !== routine.id), error: null }));
     } catch (error) {
       const errorText = message(error);
       set({ error: errorText });
@@ -129,5 +141,11 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
     } catch (error) {
       set({ error: message(error) });
     }
+  },
+  removeDate: async (routine, date, removed = true) => {
+    try {
+      const updated = await routineRepository.removeDate(routine, date, removed);
+      set(state => ({ routines: state.routines.map(item => item.id === updated.id ? updated : item), allRoutines: state.allRoutines.map(item => item.id === updated.id ? updated : item), error: null }));
+    } catch (error) { set({error: message(error)}); throw new Error(message(error)); }
   },
 }));

@@ -2,6 +2,18 @@
 
 Follow these tasks in order. The first unchecked item is the recommended next action.
 
+## Flexible daily routines handoff — 2026-09-08
+
+- [x] Custom dates plus preserved Every day / Selected weekdays / Times per week.
+- [x] Date-specific edits and explicitly scoped future-series revisions, with additive SQLite migration 6.
+- [x] Reuse existing activities, remove one date and add it back; archive confirmation and historical visibility.
+- [x] Last 7 days By day/By routine, shared dated resolution in Today/tomorrow/calendars/analytics/streaks.
+- [x] 56 tests, frontend build, strict premium audit and Windows standalone release build; Desktop shortcut verified.
+- [x] Browser fixture: dated history, dark/light, 760px, failure recovery, menu and Escape focus checks. Fixture is not native database coverage.
+- [ ] Native acceptance: open existing Desktop shortcut; choose Plan tomorrow; add Custom dates activity; edit its time with This date only; close/reopen and confirm today/history did not change.
+- [ ] If native data differs from expected, identify the effective active database before recovery or imports. The inspected Roaming database was v4 and empty; its timestamped backup does not prove the populated database was backed up.
+- [ ] Future enhancements remain separate: Google Calendar integration, export/import, installer packaging and general unsaved-draft guards. Do not overwrite migration 6 after it has shipped; add migration 7 for future schema changes.
+
 ## Plan tomorrow handoff — 2026-09-08
 
 - [x] Today entry, private route, shared task/schedule planning variants and default tomorrow forms.

@@ -21,7 +21,7 @@ export function WeeklyPlannerPage() {
   const tasksInitialized = useTaskStore((state) => state.isInitialized);
   const loadTasks = useTaskStore((state) => state.loadTasks);
   const moveTask = useTaskStore((state) => state.moveTask);
-  const routines = useRoutineStore((state) => state.routines);
+  const routines = useRoutineStore((state) => state.allRoutines);
   const historyLogs = useRoutineStore((state) => state.historyLogs);
   const routinesInitialized = useRoutineStore((state) => state.isInitialized);
   const loadRoutines = useRoutineStore((state) => state.loadRoutines);

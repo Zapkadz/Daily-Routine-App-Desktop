@@ -1,6 +1,6 @@
 import { eachDayOfInterval, endOfYear, format, min, parseISO, startOfMonth, startOfWeek, startOfYear, subDays } from "date-fns";
 import type { AnalyticsSummary, DailyStreakState, StreakData } from "../types/analytics";
-import { isRoutineActiveOnDate, isRoutineRequiredOnDate } from "./routineScheduleService";
+import { isRoutineActiveOnDate, isRoutineRequiredOnDate, routineOnDate } from "./routineScheduleService";
 import { calculateStreaks } from "./streakService";
 
 function percentage(numerator: number, denominator: number) {
@@ -40,12 +40,13 @@ export function calculateAnalytics(data: StreakData, year: number): AnalyticsSum
       for (const date of dateKeys) {
         if (!isRoutineActiveOnDate(routine, date)) continue;
         const status = logs.get(`${routine.id}:${date}`);
-        const included = isRoutineRequiredOnDate(routine, date) || (routine.frequencyType === "weekly_target" && status !== undefined);
+        const included = isRoutineRequiredOnDate(routine, date) || (routineOnDate(routine, date).frequencyType === "weekly_target" && status !== undefined);
         if (!included || status === "exempted") continue;
         expected += 1;
         if (status === "completed") completed += 1;
       }
-      return { id: routine.id, name: routine.name, color: routine.color, completed, expected, rate: percentage(completed, expected) };
+      const current = routineOnDate(routine, data.today);
+      return { id: routine.id, name: current.name, color: current.color, completed, expected, rate: percentage(completed, expected) };
     })
     .sort((left, right) => right.rate - left.rate || left.name.localeCompare(right.name));
 

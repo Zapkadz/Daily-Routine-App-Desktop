@@ -17,7 +17,9 @@ Personal Windows planner, English interface; local calendar dates and Monday-fir
 
 ## Flow ledger
 
-PlanTomorrowPage is a planning variant of the Today layout, accessed by a header link and Back to Today. TaskRow/RoutineSchedule own the planning mode without completion controls. TaskModal/RoutineModal accept optional save acknowledgements; failure preserves form inputs. Routine edits explicitly apply to the repeating definition. The local-date hook refreshes day pages after midnight and focus; open forms keep their selected date. See docs/RULES.md, Plan tomorrow.
+PlanTomorrowPage is a planning variant of the Today layout, accessed by a header link and Back to Today. TaskRow/RoutineSchedule own the planning mode without completion controls. TaskModal/RoutineModal accept optional save acknowledgements; failure preserves form inputs. RoutineForm defaults to This date only and requires explicit selection of This and future dates; consequences follow docs/RULES.md, Flexible daily schedules. The local-date hook refreshes day pages after midnight and focus; open forms keep their selected date.
+
+RoutineHistory owns By day/By routine and date selection, including historical/archived records, a seven-date boundary and bounded table scrolling. These are transient, non-shareable desktop inspection states, intentionally not URL filters. RoutineLibrary owns reuse and re-adding removed dates for Daily Routine and Plan tomorrow. RoutineModal blocks close while saving/removing and only closes after acknowledgement. RoutinesPage uses Modal with cancel-first focus to confirm whole-routine archive; DeleteConfirmation retains permanent-delete scope across all dates.
 
 Create and edit retain the caller's route and close after repository acknowledgement. Failure preserves input. Cancel returns to the triggering control. Destructive lifecycle remains unchanged, as specified in docs/RULES.md. DeleteConfirmation is the shared app-owned confirmation with cancel-first focus, busy state and inline failure recovery.
 

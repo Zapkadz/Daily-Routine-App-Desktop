@@ -32,6 +32,12 @@ pub fn run() {
             sql: include_str!("../migrations/0005_preferences.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 6,
+            description: "routine_occurrences_and_revisions",
+            sql: include_str!("../migrations/0006_routine_occurrences.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

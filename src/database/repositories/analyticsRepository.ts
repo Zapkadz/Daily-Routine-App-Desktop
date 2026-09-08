@@ -1,6 +1,7 @@
 import type { AnalyticsTask, StreakData } from "../../types/analytics";
 import type { Routine, RoutineLog } from "../../types/routine";
 import { getDatabase } from "../client";
+import { routineRepository } from './routineRepository';
 
 type AnalyticsTaskRow = { scheduled_date: string; status: AnalyticsTask["status"] };
 type RoutineRow = {
@@ -31,12 +32,7 @@ export const analyticsRepository = {
     const database = await getDatabase();
     const [taskRows, routineRows, logRows] = await Promise.all([
       database.select<AnalyticsTaskRow[]>("SELECT scheduled_date, status FROM tasks WHERE scheduled_date <= ?", [today]),
-      database.select<RoutineRow[]>(
-        `SELECT id, name, description, icon, color, frequency_type, frequency_rule,
-                reminder_time, is_active, start_date, created_at, archived_at
-         FROM routines WHERE COALESCE(start_date, substr(created_at, 1, 10)) <= ?`,
-        [today],
-      ),
+      routineRepository.listAll(),
       database.select<RoutineLogRow[]>(
         "SELECT id, routine_id, date, status, completed_at, note FROM routine_logs WHERE date <= ?",
         [today],
@@ -46,20 +42,7 @@ export const analyticsRepository = {
     return {
       today,
       tasks: taskRows.map((row) => ({ scheduledDate: row.scheduled_date, status: row.status })),
-      routines: routineRows.map((row) => ({
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        icon: row.icon,
-        color: row.color,
-        frequencyType: row.frequency_type,
-        frequencyRule: row.frequency_rule,
-        reminderTime: row.reminder_time,
-        isActive: row.is_active === 1,
-        startDate: row.start_date ?? row.created_at.slice(0, 10),
-        createdAt: row.created_at,
-        archivedAt: row.archived_at,
-      })),
+      routines: routineRows,
       routineLogs: logRows.map((row) => ({
         id: row.id,
         routineId: row.routine_id,

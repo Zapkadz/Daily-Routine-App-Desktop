@@ -1,5 +1,26 @@
 # Progress Log
 
+## 2026-09-08 — Flexible daily routines
+
+- Added Custom dates, reuse of an existing activity for today/tomorrow, and reversible removal of one date without archiving the series.
+- Edits default to This date only. This and future dates replaces the recurring series from the effective date, preserving past versions and later explicit overrides.
+- Migration 6 adds versioned snapshots and dated overrides, preserving routine/log identities and legacy history baseline. Today, tomorrow, weekly summaries, analytics and streaks resolve schedules per date.
+- Last 7 days now defaults to By day (actual historical Time/Event/Status); By routine retains the matrix with visible off-day states and archived history. No sidebar or palette changes.
+- Verification: 56 tests across 15 files passed before packaging; real SQLite tests include populated v5 upgrade, reopen persistence, custom dates, scoped edits, remove/restore, archive, past-date rejection and no double counting. Browser component fixture verified dated names/times, both history modes, light/dark, 760px layout, error input retention, menu interaction and Escape/focus restoration. Browser console had no error/warning entries in the isolated fixture. Production browser preview lacks the Tauri SQL bridge and is not native CRUD evidence.
+- `npm run build` and standalone `tauri build --no-bundle` passed. Release executable is `src-tauri/target/release/daily-routine-desktop.exe`; the existing Desktop shortcut targets it. Strict premium audit: zero findings. DESIGN lint: zero errors, three existing unused-token warnings.
+- Safeguard: copied the discovered Roaming database using SQLite VACUUM INTO to a timestamped pre-v6 backup in the same app-data directory; integrity check passed. That discovered database is v4 with zero tasks/routines/logs, so this is NOT evidence of backing up the user's populated active data. A separate disposable copy upgraded through v5/v6 with integrity/FK checks passing. No native application was launched or personal database migrated during QA.
+- Remaining acceptance: reopen the Desktop app, create a custom activity, edit tomorrow only, restart and verify on the user's actual native data. Legacy values already overwritten before v6 cannot be reconstructed. Google Calendar remains Phase 2.
+
+### Design reconciliation
+
+| Existing contract | Result |
+|---|---|
+| Quiet time-led planner, existing tokens and card positions | Preserved; history date selector uses the same green/surface roles. |
+| Shared forms, native Windows select/date controls | Preserved; scoped edits extend RoutineForm rather than adding a second editor. |
+| Old global routine-edit behavior | Deliberately replaced by the user-approved per-date behavior; RULES, ARCHITECTURE and UX contract updated together. |
+
+Component browser fixture: run `npm run dev`, then open `/tests/routine-preview.html`. Its synthetic data and intentional save failure never enter the production entry or personal SQLite database.
+
 ## 2026-09-08 — Plan tomorrow
 
 - Implemented approved `/plan/tomorrow` flow with header link on Today and no new sidebar entry.

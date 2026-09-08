@@ -7,11 +7,12 @@ import { TaskRow } from '../features/tasks/TaskRow';
 import { TaskModal } from '../features/tasks/TaskModal';
 import { RoutineSchedule } from '../features/routines/RoutineSchedule';
 import { RoutineModal } from '../features/routines/RoutineModal';
+import { RoutineLibrary } from '../features/routines/RoutineLibrary';
 import { useTaskStore } from '../stores/taskStore';
 import { useRoutineStore } from '../stores/routineStore';
 import { useLocalToday } from '../hooks/useLocalToday';
 import { tomorrowDateKey } from '../utils/date';
-import { isRoutineAvailableOnDate, isRoutineRequiredOnDate } from '../services/routineScheduleService';
+import { isRoutineAvailableOnDate, isRoutineRequiredOnDate, routinesOnDate } from '../services/routineScheduleService';
 import type { Task } from '../types/task';
 import type { Routine } from '../types/routine';
 
@@ -31,7 +32,7 @@ export function PlanTomorrowPage() {
   }, [tasksReady, routinesReady, loadTasks, loadRoutines]);
   useEffect(() => { document.title = 'Plan tomorrow · Daily Routine'; return () => { document.title = 'Daily Routine'; }; }, []);
   const tasks = taskState.tasks.filter(task => task.scheduledDate === date && task.status !== 'cancelled');
-  const routines = routineState.routines.filter(routine => isRoutineAvailableOnDate(routine, date));
+  const routines = routinesOnDate(routineState.routines, date);
   const scheduled = routines.filter(routine => isRoutineRequiredOnDate(routine, date));
   const flexible = routines.length - scheduled.length;
   const times = [...tasks.map(task => task.dueTime), ...scheduled.map(routine => routine.reminderTime)].filter((time): time is string => !!time).sort();
@@ -62,8 +63,8 @@ export function PlanTomorrowPage() {
         {(!routinesReady || routineState.isLoading) && <div className="empty-list compact" role="status">Loading your routines...</div>}
         {routinesReady && !routineState.isLoading && !routineState.error && routines.length === 0 && <div className="empty-list compact"><span>No routines scheduled for tomorrow yet.</span><button type="button" onClick={addRoutine}>Create a routine</button></div>}
         {routines.length > 0 && <RoutineSchedule routines={routines} mode="planning" onEdit={routine => setRoutineEditor({ date, routine })} />}
-        <p className="planning-note">Routines repeat according to their schedule. For one-off events, add a task with a time.</p>
-        <p className="planning-note">Editing a routine updates its repeating definition on other days too.</p>
+        <RoutineLibrary routines={routineState.routines} date={date} onSchedule={routine => setRoutineEditor({ date, routine })} />
+        <p className="planning-note">Keep a repeating rhythm or choose Custom dates. Edits apply to this date only unless you choose otherwise.</p>
       </article>
     </div>
     <p className="planning-feedback" role="status">{notice}</p>

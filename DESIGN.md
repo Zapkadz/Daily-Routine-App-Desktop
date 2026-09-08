@@ -57,6 +57,8 @@ White panels with fine green-grey rules and nearly flat shadows. Strong elevatio
 
 ## Components
 
+Daily Routine keeps the same Schedule and Last 7 days card locations. RoutineHistory owns a compact seven-day selector and read-only Time/Event/Status table, with By routine as an optional comparison view. RoutineLibrary is a disclosure beneath schedules, reusing RoutineIcon and shared button typography; no sidebar entry or new palette is introduced. History tables own bounded overflow; the surrounding page and forms retain natural scrolling.
+
 Plan tomorrow reuses Today card geometry and shared task/schedule components. The entry is a secondary header link, with no extra sidebar navigation. Three compact planning metrics replace streak/progress metrics on this route. Static Planned/Flexible labels replace completion controls. Typography, semantic colors and responsive stacking inherit the existing runtime styles.
 
 Button, Modal, TaskForm, RoutineForm, RoutineSchedule and CalendarTaskCard remain shared owners. Native Windows select and date/time popups are intentionally retained; OS popup geometry and locale are accepted. Modal uses native HTML dialog showModal for top-layer isolation, Escape, keyboard containment and restored focus. Labels remain English.

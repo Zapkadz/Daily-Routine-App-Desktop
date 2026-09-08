@@ -13,7 +13,7 @@ import { TaskModal } from "../features/tasks/TaskModal";
 import { TaskRow } from "../features/tasks/TaskRow";
 import { RoutineSchedule } from "../features/routines/RoutineSchedule";
 import { RoutineModal } from "../features/routines/RoutineModal";
-import { isRoutineAvailableOnDate, isRoutineRequiredOnDate } from "../services/routineScheduleService";
+import { routinesOnDate, isRoutineRequiredOnDate } from "../services/routineScheduleService";
 import { useRoutineStore } from "../stores/routineStore";
 import { useStreakStore } from "../stores/streakStore";
 import { useTaskStore } from "../stores/taskStore";
@@ -52,7 +52,7 @@ export function TodayPage() {
   );
   const completedTasks = tasks.filter((task) => task.status === "completed").length;
   const routines = useMemo(
-    () => allRoutines.filter((routine) => isRoutineAvailableOnDate(routine, todayKey)),
+    () => routinesOnDate(allRoutines, todayKey),
     [allRoutines, todayKey],
   );
   const requiredRoutines = routines.filter((routine) => {

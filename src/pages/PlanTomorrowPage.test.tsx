@@ -13,7 +13,7 @@ import type { Task } from '../types/task';
 import type { Routine } from '../types/routine';
 
 vi.mock('../database/repositories/taskRepository', () => ({ taskRepository: { create: vi.fn(), listActive: vi.fn(async () => []) } }));
-vi.mock('../database/repositories/routineRepository', () => ({ routineRepository: { create: vi.fn(), listActive: vi.fn(async () => []) } }));
+vi.mock('../database/repositories/routineRepository', () => ({ routineRepository: { create: vi.fn(), listAll: vi.fn(async () => []) } }));
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const tomorrow = '2026-09-09';
 const task: Task = { id: 't1', title: 'Tomorrow only', scheduledDate: tomorrow, status: 'todo', priority: 'none', dueTime: '08:00', description: null, categoryId: null, categoryName: null, recurrenceRule: null, recurrenceSourceId: null, createdAt: '', completedAt: null, archivedAt: null };
@@ -45,8 +45,8 @@ it('shows only tomorrow, orders routines and offers no completion controls', asy
   await renderPage();
   expect(host.textContent).toContain('Tomorrow only');
   expect(host.textContent).not.toContain('Today only');
-  expect(host.textContent).not.toContain('Monday only');
-  expect([...host.querySelectorAll('.schedule-event')].map(row => row.textContent)).toEqual(['Read tomorrow', 'Lunch']);
+  expect(host.querySelector('.routine-library')?.textContent).toContain('Monday only');
+  expect([...host.querySelectorAll('.schedule-table .schedule-event')].map(row => row.textContent)).toEqual(['Read tomorrow', 'Lunch']);
   expect(host.querySelector('select, .check-button')).toBeNull();
   expect(host.querySelector('.routine-summary')?.textContent).toContain('06:00');
 });
