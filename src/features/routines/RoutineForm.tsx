@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Button } from "../../components/Button";
 import { RoutineIcon } from '../../components/RoutineIcon';
+import { serializeRoutineRule } from '../../services/routineScheduleService';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 import type { CreateRoutineInput, Routine, RoutineFrequencyType, RoutineEditScope } from "../../types/routine";
 import { isPastLocalDate, localDateKey } from '../../utils/date';
@@ -51,13 +52,24 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
   const [editScope, setEditScope] = useState<RoutineEditScope>('date');
   const [customDates, setCustomDates] = useState<string[]>(() => rule.dates?.filter(date => date >= defaultDate) ?? [defaultDate]);
   const [dateToAdd, setDateToAdd] = useState(defaultDate);
-  const dateOnly = !!routine && editScope === 'date';
+  const [scheduleEdited, setScheduleEdited] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dateIsPast = isPastLocalDate(startDate, minimumDate);
+  const currentFrequencyRule = serializeRoutineRule({ frequencyType, weekdays: selectedWeekdays, weeklyTarget, customDates });
+  const scheduleChanged = !!routine && scheduleEdited && (frequencyType !== routine.frequencyType || currentFrequencyRule !== routine.frequencyRule);
+  const effectiveEditScope: RoutineEditScope = scheduleChanged ? 'future' : editScope;
+  const dateOnly = !!routine && effectiveEditScope === 'date';
 
   function toggleWeekday(day: number) {
+    setScheduleEdited(true);
     setSelectedWeekdays((current) => current.includes(day) ? current.filter((value) => value !== day) : [...current, day]);
+  }
+
+  function handleFrequencyChange(value: RoutineFrequencyType) {
+    setScheduleEdited(true);
+    setFrequencyType(value);
+    if (routine && editScope === 'date') setEditScope('future');
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -102,7 +114,7 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
         reminderEnabled: !!reminderTime && reminderEnabled,
         startDate,
         customDates,
-        editScope,
+        editScope: effectiveEditScope,
         effectiveDate: defaultDate,
       });
     } catch (submitError) {
@@ -115,7 +127,7 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
 
   return (
     <form className="task-form" noValidate aria-busy={isSaving} onSubmit={handleSubmit}>
-      {routine && <label className="field field-full"><span>Apply changes to</span><select disabled={isSaving} value={editScope} onChange={event => setEditScope(event.target.value as RoutineEditScope)}><option value="date">This date only</option><option value="future">This and future dates</option></select><small className="field-hint">{dateOnly ? `Only ${defaultDate} changes. Other days keep their schedule.` : `Replaces the repeating schedule from ${defaultDate}. Past days and later single-date adjustments are kept.`}</small></label>}
+      {routine && <label className="field field-full"><span>Apply changes to</span><select disabled={isSaving} value={effectiveEditScope} onChange={event => setEditScope(event.target.value as RoutineEditScope)}><option value="date" disabled={scheduleChanged}>This date only</option><option value="future">This and future dates</option></select><small className="field-hint">{dateOnly ? `Only ${defaultDate} changes. Other days keep their schedule.` : `Replaces the repeating schedule from ${defaultDate}. Past days and later single-date adjustments are kept.`}</small></label>}
       <label className="field field-full">
         <span>Event</span>
         <input autoFocus aria-invalid={!!error && !name.trim()} aria-describedby={error ? "routine-form-error" : undefined} value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Get up, Study Japanese, Lunch" />
@@ -142,7 +154,7 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
       </label>
       <label className="field field-full">
         <span>Schedule</span>
-        <select disabled={dateOnly || isSaving} value={frequencyType} onChange={(event) => setFrequencyType(event.target.value as RoutineFrequencyType)}>
+        <select disabled={isSaving} value={frequencyType} onChange={(event) => handleFrequencyChange(event.target.value as RoutineFrequencyType)}>
           <option value="daily">Every day</option>
           <option value="weekdays">Selected weekdays</option>
           <option value="weekly_target">Times per week</option>
@@ -163,7 +175,7 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
       {!dateOnly && frequencyType === "weekly_target" && (
         <label className="field field-full">
           <span>Weekly target</span>
-          <select value={weeklyTarget} onChange={(event) => setWeeklyTarget(Number(event.target.value))}>
+          <select value={weeklyTarget} onChange={(event) => { setScheduleEdited(true); setWeeklyTarget(Number(event.target.value)); }}>
             {[1, 2, 3, 4, 5, 6, 7].map((value) => <option key={value} value={value}>{value} times per week</option>)}
           </select>
         </label>
@@ -172,9 +184,10 @@ export function RoutineForm({ defaultDate, routine, onCancel, onSubmit, onDelete
         <label className="field"><span>Add a date</span><input type="date" min={startDate > minimumDate ? startDate : minimumDate} value={dateToAdd} onChange={event => setDateToAdd(event.target.value)} /></label>
         <Button variant="secondary" disabled={isSaving} onClick={() => {
           if (!dateToAdd || dateToAdd < minimumDate || dateToAdd < startDate) { setError('Choose today or a future date on or after the start date.'); return; }
+          setScheduleEdited(true);
           setCustomDates(dates => [...new Set([...dates, dateToAdd])].sort()); setError(null);
         }}>Add date</Button>
-        <div className="custom-date-list">{customDates.map(date => <Button key={date} variant="secondary" disabled={isSaving} aria-label={`Remove date ${date}`} onClick={() => setCustomDates(dates => dates.filter(item => item !== date))}>{date} ×</Button>)}</div>
+        <div className="custom-date-list">{customDates.map(date => <Button key={date} variant="secondary" disabled={isSaving} aria-label={`Remove date ${date}`} onClick={() => { setScheduleEdited(true); setCustomDates(dates => dates.filter(item => item !== date)); }}>{date} ×</Button>)}</div>
         <small className="field-hint">Only these dates are scheduled. Reuse this activity later with a different time.</small>
       </div>}
       <label className="field">

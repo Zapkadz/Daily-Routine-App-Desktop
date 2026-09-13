@@ -50,6 +50,15 @@ it('defaults edits to this date and allows deliberate future scope without shift
   expect(submit).toHaveBeenCalledWith(expect.objectContaining({ editScope: 'date', effectiveDate: '2026-09-09', reminderTime: '08:00' }));
 });
 
+it('switches routine edits to future scope when the repeating schedule changes', async () => {
+  const submit = vi.fn(async () => {});
+  await act(async () => root.render(<RoutineForm defaultDate="2026-09-09" routine={{ ...routine, frequencyType: 'daily', frequencyRule: '{}' }} onCancel={() => {}} onSubmit={submit} />));
+  await select('Schedule', 'weekdays');
+  await select('Apply changes to', 'date');
+  await click('Save changes');
+  expect(submit).toHaveBeenCalledWith(expect.objectContaining({ editScope: 'future', frequencyType: 'weekdays' }));
+});
+
 it('validates a nonempty custom-date selection and sends the chosen dates', async () => {
   const submit = vi.fn(async () => {});
   await act(async () => root.render(<RoutineForm defaultDate="2026-09-09" routine={{ ...routine, frequencyType: 'daily' }} onCancel={() => {}} onSubmit={submit} />));
